@@ -1,6 +1,6 @@
 
 
-export default async function getAttemptSubmissions(idparticipant) {
+export default async function getAllCommittedAttempts(idparticipant) {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     var studyApiHost = 'http://127.0.0.1:5000';
@@ -25,15 +25,15 @@ export default async function getAttemptSubmissions(idparticipant) {
     };
 
     try {
-        const response = await fetch(studyApiHost + "/study/get_attempt_submissions_since_last_commit", studyApiPostRequestOptions);
+        const response = await fetch(studyApiHost + "/study/get_all_committed_attempts", studyApiPostRequestOptions);
         const responseJson = await response.json();
         console.log(responseJson);
         return responseJson;
     } catch (error) {
-        console.log("Error encountered when attempting to get participant submissions since last commit from study api!");
+        console.log("Error encountered when attempting to get participant committed attempts from study api!");
         console.log(error);
         return {
-            msg: 'error when loading submitted attempts'
+            msg: 'error when loading committed attempts'
         };
     }
 }
