@@ -36,3 +36,16 @@
     transform: rotate(360deg);
   }
 }
+
+.table-row-selected {
+  background-color: aliceblue;
+}
+
+.table-row {
+  background-color: rgb(235, 230, 225);
+}
+
+.table-row:hover {
+  background-color: rgb(195, 207, 203);
+}
+

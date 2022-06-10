@@ -6,10 +6,12 @@ export default class AppDriver extends React.Component {
     constructor(props) {
         super(props)
         this.state = ({
-            attempt_submissions: {}
+            attempt_submissions: {},
+            submission_selected: -1
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
+        this.handleSubmissionTableRowSelected = this.handleSubmissionTableRowSelected.bind(this);
 
     }
 
@@ -19,13 +21,18 @@ export default class AppDriver extends React.Component {
         })
     }
 
+    handleSubmissionTableRowSelected(idAttemptSubmissions) {
+        console.log("row clicked", idAttemptSubmissions);
+        this.setState({submission_selected: idAttemptSubmissions})
+    }
+
     renderSubmissionsTable() {
 
         const keys = Object.keys(this.state.attempt_submissions);
         if (keys[0] !== undefined) {
-            console.log('keys[0]', keys[0]);
+            // console.log('keys[0]', keys[0]);
             const columns = Object.keys(this.state.attempt_submissions[keys[1]]);
-            console.log(columns);
+            // console.log(columns);
                         
             return (
                 <table>
@@ -37,7 +44,12 @@ export default class AppDriver extends React.Component {
                     </thead>
                     <tbody>
                         {keys.map(
-                            (key => <tr>
+                            (key => <tr 
+                                        onClick={() => this.handleSubmissionTableRowSelected(key)}
+                                        className={
+                                            this.state.submission_selected === key ? 'table-row-selected' : 'table-row'
+                                        }
+                                    >
                                 <td>{key}</td>
                                 {
                                     columns.map(column => <td>{

@@ -1,6 +1,6 @@
 
 
-export default async function GetAttemptSubmissions(idparticipant) {
+export default async function getAttemptSubmissions(idparticipant) {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     var studyApiHost = 'http://127.0.0.1:5000';
