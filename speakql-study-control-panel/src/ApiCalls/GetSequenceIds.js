@@ -1,6 +1,6 @@
 
 
-export default async function getParticipantUsernames() {
+export default async function getSequenceIds() {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     var studyApiHost = 'http://127.0.0.1:5000';
@@ -23,15 +23,15 @@ export default async function getParticipantUsernames() {
     };
 
     try {
-        const response = await fetch(studyApiHost + "/study/get_all_participant_usernames", studyApiPostRequestOptions);
+        const response = await fetch(studyApiHost + "/study/get_sequence_ids", studyApiPostRequestOptions);
         const responseJson = await response.json();
         // console.log(responseJson);
         return responseJson;
     } catch (error) {
-        console.log("Error encountered when attempting to get participant usernames from study api!");
+        console.log("Error encountered when attempting to get sequence ids from study api!");
         console.log(error);
         return {
-            msg: 'error when loading participant usernames attempts'
+            msg: 'error when loading sequence ids'
         };
     }
 }

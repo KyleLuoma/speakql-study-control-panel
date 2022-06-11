@@ -5,6 +5,7 @@ import saveAttempt from './ApiCalls/SaveAttempt';
 import revertAttempt from './ApiCalls/RevertAttempt';
 import getParticipantUsernames from './ApiCalls/GetParticipantUsernames';
 import getParticipantIdFromUsername from './ApiCalls/GetParticipantIdFromUsername';
+import getSequenceIds from './ApiCalls/GetSequenceIds';
 
 export default class AppDriver extends React.Component {
 
@@ -16,7 +17,9 @@ export default class AppDriver extends React.Component {
             submission_selected: -1,
             commit_selected: -1,
             participant_id: -1,
-            username: ''
+            username: '',
+            show_session_creation: true,
+            selected_sequence: ''
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
@@ -26,16 +29,21 @@ export default class AppDriver extends React.Component {
         this.handleSaveIncorrectAttempt = this.handleSaveIncorrectAttempt.bind(this);
         this.handleRevertAttempt = this.handleRevertAttempt.bind(this);
         this.handleParticipantSelection = this.handleParticipantSelection.bind(this);
+        this.handleSequenceSelection = this.handleSequenceSelection.bind(this);
+        this.handleSessionCreation = this.handleSessionCreation.bind(this);
 
     }
 
     async componentDidMount() {
 
         const usernameUpdate = this.state.usernames || await getParticipantUsernames()
+        const sequenceIdUpdate = this.state.sequence_ids || await getSequenceIds()
 
         this.setState({
-            usernames: usernameUpdate
+            usernames: usernameUpdate,
+            sequence_ids: sequenceIdUpdate
         });
+        // console.log(sequenceIdUpdate);
         // console.log("USERNAMES:", this.state.usernames)
     }
 
@@ -84,6 +92,18 @@ export default class AppDriver extends React.Component {
             username: response['username']
         });
     }
+
+    async handleSequenceSelection(e) {
+        const selectedSequence = e.target.value;
+        this.setState({
+            selected_sequence: selectedSequence
+        });
+    }
+
+    async handleSessionCreation() {
+        return;
+    }
+
 
     renderSubmissionsTable() {
 
@@ -181,8 +201,11 @@ export default class AppDriver extends React.Component {
         if(this.state.usernames) {
             return (
                 <div>
-                    <label>Select Participant:</label>
-                    <select name="participants" id="participants" onChange={this.handleParticipantSelection}>
+                    <label>Select Participant: </label>
+                    <select 
+                        name="participants" id="participants" 
+                        onChange={this.handleParticipantSelection}
+                    >
                         {
                             this.state.usernames.map(
                                 username => <option value = {username}>{username}</option>
@@ -194,10 +217,32 @@ export default class AppDriver extends React.Component {
         }
     }
 
+    renderSessionCreation(showSessionCreation) {
+        if(this.state.sequence_ids && showSessionCreation) {
+            return (
+                <div>
+                    <label>Select Query Sequence: </label>
+                    <select 
+                        name="sequences" id="sequences" 
+                        //onChange={}
+                    >
+                        {
+                            this.state.sequence_ids.map(
+                                sequenceId => <option value = {sequenceId}>{sequenceId}</option>
+                                )
+                        }
+                    </select>
+                    <div><button>Create Session</button></div>
+                </div>
+            )
+        }
+    }
+
     render() {
         return (
             <div>
                 {this.renderUsernameSelection()}
+                {this.renderSessionCreation(true)}
                 <h3>Current Submissions:</h3>
                 {this.renderSubmissionsTable()}
                 <button onClick={this.handleGetSubmissions}>Get Submissions</button>
