@@ -141,8 +141,6 @@ export default class AppDriver extends React.Component {
                     this.state.selected_sequence
                 );
                 this.toggleShowSessionCreation();
-                this.handleParticipantSelection();
-                this.handleSessionSelection();
         }
     }
 
