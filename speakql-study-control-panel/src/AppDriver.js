@@ -6,6 +6,8 @@ import revertAttempt from './ApiCalls/RevertAttempt';
 import getParticipantUsernames from './ApiCalls/GetParticipantUsernames';
 import getParticipantIdFromUsername from './ApiCalls/GetParticipantIdFromUsername';
 import getSequenceIds from './ApiCalls/GetSequenceIds';
+import getParticipantSessions from './ApiCalls/GetParticipantSessions';
+import registerParticipantSession from './ApiCalls/RegisterParticipantSession';
 
 export default class AppDriver extends React.Component {
 
@@ -18,8 +20,10 @@ export default class AppDriver extends React.Component {
             commit_selected: -1,
             participant_id: -1,
             username: '',
-            show_session_creation: true,
-            selected_sequence: ''
+            show_session_creation: false,
+            selected_sequence: '',
+            participant_sessions: {},
+            selected_session: -1
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
@@ -31,31 +35,51 @@ export default class AppDriver extends React.Component {
         this.handleParticipantSelection = this.handleParticipantSelection.bind(this);
         this.handleSequenceSelection = this.handleSequenceSelection.bind(this);
         this.handleSessionCreation = this.handleSessionCreation.bind(this);
-
+        this.handleSessionSelection = this.handleSessionSelection.bind(this);
+        this.toggleShowSessionCreation = this.toggleShowSessionCreation.bind(this);
     }
 
     async componentDidMount() {
 
         const usernameUpdate = this.state.usernames || await getParticipantUsernames()
+
+        if(! usernameUpdate.hasOwnProperty('msg')) {
+            this.setState({usernames: usernameUpdate});
+        }
+
         const sequenceIdUpdate = this.state.sequence_ids || await getSequenceIds()
 
-        this.setState({
-            usernames: usernameUpdate,
-            sequence_ids: sequenceIdUpdate
-        });
+        if(! sequenceIdUpdate.hasOwnProperty('msg')) {
+            this.setState({sequence_ids: sequenceIdUpdate});
+        }
+
         // console.log(sequenceIdUpdate);
         // console.log("USERNAMES:", this.state.usernames)
     }
 
+    toggleShowSessionCreation() {
+        if(this.state.show_session_creation) {
+            this.setState({show_session_creation: false})
+        } else {
+            this.setState({show_session_creation: true})
+        }
+    }
+
     async handleGetSubmissions() {
         this.setState({
-            attempt_submissions: await getAttemptSubmissions(this.state.participant_id)
+            attempt_submissions: await getAttemptSubmissions(
+                this.state.participant_id,
+                this.state.selected_session
+                )
         })
     }
 
     async handleGetCommittedAttempts() {
         this.setState({
-            committed_attempts: await getAllCommittedAttempts(this.state.participant_id)
+            committed_attempts: await getAllCommittedAttempts(
+                this.state.participant_id,
+                this.state.selected_session
+                )
         })
     }
 
@@ -87,9 +111,14 @@ export default class AppDriver extends React.Component {
         const selectedUsername = e.target.value;
         const response = await getParticipantIdFromUsername(selectedUsername);
         console.log(selectedUsername, response['idparticipant']);
+
+        const sessions = await getParticipantSessions(response['idparticipant']);
+        console.log(sessions)
+
         this.setState({
             participant_id: response['idparticipant'],
-            username: response['username']
+            username: response['username'],
+            participant_sessions: sessions
         });
     }
 
@@ -101,9 +130,28 @@ export default class AppDriver extends React.Component {
     }
 
     async handleSessionCreation() {
-        return;
+        if(
+            this.state.participant_id !== undefined 
+            && this.state.participant_id > 0
+            && this.state.selected_sequence !== undefined
+            ){
+                console.log("SELECTED_SEQUENCE", this.state.selected_sequence);
+                await registerParticipantSession(
+                    this.state.participant_id,
+                    this.state.selected_sequence
+                );
+                this.toggleShowSessionCreation();
+                this.handleParticipantSelection();
+                this.handleSessionSelection();
+        }
     }
 
+    async handleSessionSelection(e) {
+        const selectedSession = e.target.value;
+        this.setState({
+            selected_session: selectedSession
+        });
+    }
 
     renderSubmissionsTable() {
 
@@ -198,7 +246,7 @@ export default class AppDriver extends React.Component {
     }
 
     renderUsernameSelection() {
-        if(this.state.usernames) {
+        if(this.state.usernames !== undefined) {
             return (
                 <div>
                     <label>Select Participant: </label>
@@ -217,6 +265,40 @@ export default class AppDriver extends React.Component {
         }
     }
 
+    renderSessionSelection() {
+        if(
+            ! this.state.participant_sessions.hasOwnProperty('msg') && Object.keys(this.state.participant_sessions).length > 0
+            ) {
+                const keys = Object.keys(this.state.participant_sessions);
+                console.log(this.state.participant_sessions);
+                return (
+                    <div>
+                        <label>Select Participant Session</label>
+                        <select
+                            name="sessions" id = "sessions"
+                            onChange={this.handleSessionSelection}
+                        >
+                            {
+                                keys.map(
+                                    key => <option value = {
+                                        this.state.participant_sessions[key]['idsession']
+                                    }> 
+                                    {this.state.participant_sessions[key]['idsession']} 
+                                    -
+                                    {this.state.participant_sessions[key]['idsequence']}
+                                    </option>
+                                )
+                            }
+                        </select>
+                    </div>
+                )
+            } else {
+                return <div>
+                        <div>Participant does not appear to have any registered sessions.</div>
+                    </div>
+            }
+    }
+
     renderSessionCreation(showSessionCreation) {
         if(this.state.sequence_ids && showSessionCreation) {
             return (
@@ -224,7 +306,7 @@ export default class AppDriver extends React.Component {
                     <label>Select Query Sequence: </label>
                     <select 
                         name="sequences" id="sequences" 
-                        //onChange={}
+                        onChange={this.handleSequenceSelection}
                     >
                         {
                             this.state.sequence_ids.map(
@@ -232,8 +314,12 @@ export default class AppDriver extends React.Component {
                                 )
                         }
                     </select>
-                    <div><button>Create Session</button></div>
+                    <div><button onClick={this.handleSessionCreation}>Create Session</button></div>
                 </div>
+            )
+        } else {
+            return (
+                <button onClick={this.toggleShowSessionCreation}>Register New Session</button>
             )
         }
     }
@@ -242,13 +328,14 @@ export default class AppDriver extends React.Component {
         return (
             <div>
                 {this.renderUsernameSelection()}
-                {this.renderSessionCreation(true)}
-                <h3>Current Submissions:</h3>
+                {this.renderSessionSelection()}
+                {this.renderSessionCreation(this.state.show_session_creation)}
+                <h3>Current Submissions for {this.state.username}</h3>
                 {this.renderSubmissionsTable()}
                 <button onClick={this.handleGetSubmissions}>Get Submissions</button>
                 <button onClick={this.handleSaveCorrectAttempt}>Save as Correct</button>
                 <button onClick={this.handleSaveIncorrectAttempt}>Save as Incorrect</button>
-                <h3>Committed Attempts:</h3>
+                <h3>Committed Attempts for {this.state.username}:</h3>
                 {this.renderCommittedAttemptsTable()}
                 <button onClick={this.handleGetCommittedAttempts}>Get Committed Attempts</button>
                 <button onClick={this.handleRevertAttempt}>Revert Selected</button>

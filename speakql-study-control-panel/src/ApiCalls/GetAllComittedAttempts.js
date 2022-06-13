@@ -1,6 +1,6 @@
 
 
-export default async function getAllCommittedAttempts(idparticipant) {
+export default async function getAllCommittedAttempts(idparticipant, idsession) {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     var studyApiHost = 'http://127.0.0.1:5000';
@@ -20,7 +20,8 @@ export default async function getAllCommittedAttempts(idparticipant) {
             'Accept-Encoding' : 'gzip, deflate, br'
         },
         body: JSON.stringify({
-            idparticipant: idparticipant
+            idparticipant: idparticipant,
+            idsession: idsession
         })
     };
 

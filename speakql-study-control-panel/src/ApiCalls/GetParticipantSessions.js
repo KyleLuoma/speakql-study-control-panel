@@ -1,7 +1,6 @@
 
 
-export default async function getAttemptSubmissions(idparticipant, idsession) {
-    // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
+export default async function getParticipantSessions(idparticipant) {
 
     var studyApiHost = 'http://127.0.0.1:5000';
     if(process.env.NODE_ENV === 'production') {
@@ -19,22 +18,19 @@ export default async function getAttemptSubmissions(idparticipant, idsession) {
             'Accept' : '*/*',
             'Accept-Encoding' : 'gzip, deflate, br'
         },
-        body: JSON.stringify({
-            idparticipant: idparticipant,
-            idsession: idsession
-        })
+        body: JSON.stringify({'idparticipant': idparticipant})
     };
 
     try {
-        const response = await fetch(studyApiHost + "/study/get_attempt_submissions_since_last_commit", studyApiPostRequestOptions);
+        const response = await fetch(studyApiHost + "/study/get_participant_sessions", studyApiPostRequestOptions);
         const responseJson = await response.json();
-        console.log(responseJson);
+        // console.log(responseJson);
         return responseJson;
     } catch (error) {
-        console.log("Error encountered when attempting to get participant submissions since last commit from study api!");
+        console.log("Error encountered when attempting to get participant sessions from study api!");
         console.log(error);
         return {
-            msg: 'error when loading submitted attempts'
+            msg: 'error when loading participant sessions attempts'
         };
     }
 }
