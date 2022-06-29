@@ -343,12 +343,74 @@ export default class AppDriver extends React.Component {
                 <br></br>Language: {this.state.current_language}
                 <br></br>Step: {this.state.current_step}
                 <br></br>Example: {this.state.query_eval_data['example']}
-                <br></br>Tables: {this.state.query_eval_data['tables']}
-                <br></br>Columns: {this.state.query_eval_data['projections']}
-                <br></br>Functions: {this.state.query_eval_data['functions']}
-                <br></br>Joins: {this.state.query_eval_data['joins']}
-                <br></br>Modifiers: {this.state.query_eval_data['modifiers']}
-                <br></br>Selections: {this.state.query_eval_data['selections']}
+
+                <form>
+                    <br></br>
+                    <input type="checkbox" name="tables"></input>
+                    <label for="tables">Tables: {this.state.query_eval_data['tables']}</label>
+                    
+                    <br></br>
+                    <input type="checkbox" name="columns"></input>
+                    <label for="columns">Columns: {this.state.query_eval_data['projections']}</label>
+
+                    <br></br>
+                    <input type="checkbox" name="functions"></input>
+                    <label for="functions">Functions: {this.state.query_eval_data['functions']}</label>
+
+                    <br></br>
+                    <input type="checkbox" name="joins"></input>
+                    <label for="joins">Joins: {this.state.query_eval_data['joins']}</label>
+
+                    <br></br>
+                    <input type="checkbox" name="modifiers"></input>
+                    <label for="modifiers">Modifiers: {this.state.query_eval_data['modifiers']}</label>
+
+                    <br></br>
+                    <input type="checkbox" name="selections"></input>
+                    <label for="selections">Selections: {this.state.query_eval_data['selections']}</label>
+
+                    <br></br>
+                    <input type="checkbox" name="incorrectKeyword"></input>
+                    <label for="incorrectKeyword">Incorrect Keyword</label>
+
+                    <br></br>
+                    <input type="checkbox" name="incorrectExpressionOrder"></input>
+                    <label for="incorrectExpressionOrder">Incorrect Expression Order</label>
+
+                    <br></br>
+                    <input type="checkbox" name="incorrectJoinSyntax"></input>
+                    <label for="incorrectJoinSyntax">Incorrect Join Syntax</label>
+
+                    <br></br>
+                    <input type="checkbox" name="incorrectFunctionSyntax"></input>
+                    <label for="incorrectFunctionSyntax">Incorrect Function Syntax</label>
+
+                    <br></br>
+                    <label for="syntaxErrors">Other Syntax Errors </label>
+                    <input type="text" name="syntaxErrors"></input>
+                    
+                    <br></br>
+                    <input type="checkbox" name="missingComma"></input>
+                    <label for="missingComma">Missing Comma</label>
+
+                    <br></br>
+                    <input type="checkbox" name="missingParen"></input>
+                    <label for="missingParen">Missing Parenthesis</label>
+
+                    <br></br>
+                    <input type="checkbox" name="missingQuote"></input>
+                    <label for="missingQuote">Missing Quote</label>
+
+                    <br></br>
+                    <input type="checkbox" name="missingOperator"></input>
+                    <label for="missingOperator">Missing Operator</label>
+
+                    <br></br>
+                    <label for="symbolErrors">Other Symbol Errors </label>
+                    <input type="text" name="symbolErrors"></input>
+                    
+                </form>
+
                 </div>
             )
 
