@@ -8,6 +8,8 @@ import getParticipantIdFromUsername from './ApiCalls/GetParticipantIdFromUsernam
 import getSequenceIds from './ApiCalls/GetSequenceIds';
 import getParticipantSessions from './ApiCalls/GetParticipantSessions';
 import registerParticipantSession from './ApiCalls/RegisterParticipantSession';
+import getNextPrompt from './ApiCalls/GetNextPrompt';
+import getQueryEvalData from './ApiCalls/GetQueryEvalData';
 
 export default class AppDriver extends React.Component {
 
@@ -23,7 +25,12 @@ export default class AppDriver extends React.Component {
             show_session_creation: false,
             selected_sequence: '',
             participant_sessions: {},
-            selected_session: -1
+            selected_session: -1,
+            current_query_prompt: '',
+            current_query_id: -1,
+            current_language: '',
+            current_step: -1,
+            query_eval_data: {}
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
@@ -36,6 +43,7 @@ export default class AppDriver extends React.Component {
         this.handleSequenceSelection = this.handleSequenceSelection.bind(this);
         this.handleSessionCreation = this.handleSessionCreation.bind(this);
         this.handleSessionSelection = this.handleSessionSelection.bind(this);
+        this.handleGetQueryPrompt = this.handleGetQueryPrompt.bind(this);
         this.toggleShowSessionCreation = this.toggleShowSessionCreation.bind(this);
     }
 
@@ -99,6 +107,35 @@ export default class AppDriver extends React.Component {
         await revertAttempt(this.state.commit_selected);
         await this.handleGetSubmissions();
         await this.handleGetCommittedAttempts();
+    }
+
+    async handleGetQueryPrompt() {
+        var promptJson = await getNextPrompt(this.state.participant_id);
+        await this.setState({
+            current_query_prompt: promptJson['prompt'],
+            current_query_id: promptJson['idquery'],
+            current_language: promptJson['language'],
+            current_step: promptJson['step']
+        })
+        var queryJson = await getQueryEvalData(promptJson['idquery']);
+        var example = queryJson['sql_example'];
+        if(promptJson['language'] === 'speakql') {
+            example = queryJson['speakql_example_1']
+        }
+
+        this.setState({
+            query_eval_data : {
+                example: example,
+                functions: queryJson['functions'],
+                joins: queryJson['joins'],
+                modifiers: queryJson['modifiers'],
+                selections: queryJson['selection'],
+                projections: queryJson['projections'],
+                tables: queryJson['tables']
+            }
+        })
+
+        console.log(queryJson);
     }
 
     handleSubmissionTableRowSelected(idAttemptSubmissions) {
@@ -297,6 +334,30 @@ export default class AppDriver extends React.Component {
             }
     }
 
+    renderQueryPrompt() {
+        if(this.state.participant_id > 0 && this.state.selected_session > 0) {
+            return (
+                <div>
+                <button onClick={this.handleGetQueryPrompt}>Get Prompt</button>
+                <br></br>Prompt: {this.state.current_query_prompt}
+                <br></br>Language: {this.state.current_language}
+                <br></br>Step: {this.state.current_step}
+                <br></br>Example: {this.state.query_eval_data['example']}
+                <br></br>Tables: {this.state.query_eval_data['tables']}
+                <br></br>Columns: {this.state.query_eval_data['projections']}
+                <br></br>Functions: {this.state.query_eval_data['functions']}
+                <br></br>Joins: {this.state.query_eval_data['joins']}
+                <br></br>Modifiers: {this.state.query_eval_data['modifiers']}
+                <br></br>Selections: {this.state.query_eval_data['selections']}
+                </div>
+            )
+
+        }
+        
+    }
+
+
+
     renderSessionCreation(showSessionCreation) {
         if(this.state.sequence_ids && showSessionCreation) {
             return (
@@ -328,6 +389,8 @@ export default class AppDriver extends React.Component {
                 {this.renderUsernameSelection()}
                 {this.renderSessionSelection()}
                 {this.renderSessionCreation(this.state.show_session_creation)}
+                <h3>Current Query Prompt:</h3>
+                {this.renderQueryPrompt()}
                 <h3>Current Submissions for {this.state.username}</h3>
                 {this.renderSubmissionsTable()}
                 <button onClick={this.handleGetSubmissions}>Get Submissions</button>
