@@ -336,81 +336,139 @@ export default class AppDriver extends React.Component {
 
     renderQueryPrompt() {
         if(this.state.participant_id > 0 && this.state.selected_session > 0) {
+            let tableText = this.state.query_eval_data['tables'] || '';
+            let tableList = tableText.split(',');
+            let columnText = this.state.query_eval_data['projections'] || '';
+            let columnList = columnText.split(',');
+            let functionText = this.state.query_eval_data['functions'] || '';
+            let functionList = functionText.split(',');
+            let joinText = this.state.query_eval_data['joins'] || '';
+            let joinList = joinText.split(',');
+            let modifierText = this.state.query_eval_data['modifiers'] || '';
+            let modifierList = modifierText.split(',');
+            let selectionText = this.state.query_eval_data['selections'] || '';
+            let selectionList = selectionText.split(',');
             return (
-                <div>
-                <button onClick={this.handleGetQueryPrompt}>Get Prompt</button>
-                <br></br>Prompt: {this.state.current_query_prompt}
-                <br></br>Language: {this.state.current_language}
-                <br></br>Step: {this.state.current_step}
-                <br></br>Example: {this.state.query_eval_data['example']}
+                <div class="grading-form">
+                    <button onClick={this.handleGetQueryPrompt}>Get Prompt</button>
+                    <form class="grading-form">
+                        <table class="grading-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="content-cell">Input</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="label-cell">Prompt:</td><td class="content-cell">{this.state.current_query_prompt}</td></tr>
+                                <tr><td class="label-cell">Language:</td><td class="content-cell">{this.state.current_language}</td></tr>
+                                <tr><td class="label-cell">Step:</td><td class="content-cell">{this.state.current_step}</td></tr>
+                                <tr><td class="label-cell">Example:</td><td class="content-cell">{this.state.query_eval_data['example']}</td></tr>
+                                <tr>
+                                    <td class="label-cell">Tables:</td>
+                                    <td class="content-cell">{tableList.map((
+                                        table => <>
+                                        <input type="checkbox" name={"table_" + table}></input>
+                                        <label for={"table_" + table}>{table}</label>
+                                        </>
+                                    ))}</td>
+                                </tr>
+                                    <td class="label-cell">Columns:</td>
+                                    <td class="content-cell">{columnList.map((
+                                        column => <>
+                                        <input type="checkbox" name={"column_" + column}></input>
+                                        <label for={"column_" + column}>{column}</label>
+                                        </>
+                                    ))}</td>
+                                    <tr>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Functions:</td>
+                                    <td class="content-cell">{functionList.map((
+                                        funct => <>
+                                        <input type="checkbox" name={"funct_" + funct}></input>
+                                        <label for={"funct_" + funct}>{funct}</label>
+                                        </>
+                                    ))}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Joins:</td>
+                                    <td class="content-cell">{joinList.map((
+                                        join => <>
+                                        <input type="checkbox" name={"join_" + join}></input>
+                                        <label for={"join_" + join}>{join}</label>
+                                        </>
+                                    ))}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Modifiers:</td>
+                                    <td class="content-cell">{modifierList.map((
+                                        modifier => <>
+                                        <input type="checkbox" name={"modifier_" + modifier}></input>
+                                        <label for={"modifier_" + modifier}>{modifier}</label>
+                                        </>
+                                    ))}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Selections:</td>
+                                    <td class="content-cell">{selectionList.map((
+                                        selection => <>
+                                        <input type="checkbox" name={"selection_" + selection}></input>
+                                        <label for={"selection_" + selection}>{selection}</label>
+                                        </>
+                                    ))}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Syntax Errors:</td>
+                                    <td class="content-cell">
+                                        <br></br>
+                                        <input type="checkbox" name="incorrectKeyword"></input>
+                                        <label for="incorrectKeyword">Incorrect Keyword</label>
 
-                <form>
-                    <br></br>
-                    <input type="checkbox" name="tables"></input>
-                    <label for="tables">Tables: {this.state.query_eval_data['tables']}</label>
-                    
-                    <br></br>
-                    <input type="checkbox" name="columns"></input>
-                    <label for="columns">Columns: {this.state.query_eval_data['projections']}</label>
+                                        <br></br>
+                                        <input type="checkbox" name="incorrectExpressionOrder"></input>
+                                        <label for="incorrectExpressionOrder">Incorrect Expression Order</label>
 
-                    <br></br>
-                    <input type="checkbox" name="functions"></input>
-                    <label for="functions">Functions: {this.state.query_eval_data['functions']}</label>
+                                        <br></br>
+                                        <input type="checkbox" name="incorrectJoinSyntax"></input>
+                                        <label for="incorrectJoinSyntax">Incorrect Join Syntax</label>
 
-                    <br></br>
-                    <input type="checkbox" name="joins"></input>
-                    <label for="joins">Joins: {this.state.query_eval_data['joins']}</label>
+                                        <br></br>
+                                        <input type="checkbox" name="incorrectFunctionSyntax"></input>
+                                        <label for="incorrectFunctionSyntax">Incorrect Function Syntax</label>
 
-                    <br></br>
-                    <input type="checkbox" name="modifiers"></input>
-                    <label for="modifiers">Modifiers: {this.state.query_eval_data['modifiers']}</label>
+                                        <br></br>
+                                        <label for="syntaxErrors">Other Syntax Errors </label>
+                                        <input type="text" name="syntaxErrors"></input>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Symbol Errors</td>
+                                    <td class="content-cell">
+                                        <br></br>
+                                        <input type="checkbox" name="missingComma"></input>
+                                        <label for="missingComma">Missing Comma</label>
 
-                    <br></br>
-                    <input type="checkbox" name="selections"></input>
-                    <label for="selections">Selections: {this.state.query_eval_data['selections']}</label>
+                                        <br></br>
+                                        <input type="checkbox" name="missingParen"></input>
+                                        <label for="missingParen">Missing Parenthesis</label>
 
-                    <br></br>
-                    <input type="checkbox" name="incorrectKeyword"></input>
-                    <label for="incorrectKeyword">Incorrect Keyword</label>
+                                        <br></br>
+                                        <input type="checkbox" name="missingQuote"></input>
+                                        <label for="missingQuote">Missing Quote</label>
 
-                    <br></br>
-                    <input type="checkbox" name="incorrectExpressionOrder"></input>
-                    <label for="incorrectExpressionOrder">Incorrect Expression Order</label>
+                                        <br></br>
+                                        <input type="checkbox" name="missingOperator"></input>
+                                        <label for="missingOperator">Missing Operator</label>
 
-                    <br></br>
-                    <input type="checkbox" name="incorrectJoinSyntax"></input>
-                    <label for="incorrectJoinSyntax">Incorrect Join Syntax</label>
-
-                    <br></br>
-                    <input type="checkbox" name="incorrectFunctionSyntax"></input>
-                    <label for="incorrectFunctionSyntax">Incorrect Function Syntax</label>
-
-                    <br></br>
-                    <label for="syntaxErrors">Other Syntax Errors </label>
-                    <input type="text" name="syntaxErrors"></input>
-                    
-                    <br></br>
-                    <input type="checkbox" name="missingComma"></input>
-                    <label for="missingComma">Missing Comma</label>
-
-                    <br></br>
-                    <input type="checkbox" name="missingParen"></input>
-                    <label for="missingParen">Missing Parenthesis</label>
-
-                    <br></br>
-                    <input type="checkbox" name="missingQuote"></input>
-                    <label for="missingQuote">Missing Quote</label>
-
-                    <br></br>
-                    <input type="checkbox" name="missingOperator"></input>
-                    <label for="missingOperator">Missing Operator</label>
-
-                    <br></br>
-                    <label for="symbolErrors">Other Symbol Errors </label>
-                    <input type="text" name="symbolErrors"></input>
-                    
-                </form>
-
+                                        <br></br>
+                                        <label for="symbolErrors">Other Symbol Errors </label>
+                                        <input type="text" name="symbolErrors"></input>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </form>
                 </div>
             )
 
