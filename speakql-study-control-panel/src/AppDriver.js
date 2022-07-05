@@ -30,7 +30,8 @@ export default class AppDriver extends React.Component {
             current_query_id: -1,
             current_language: '',
             current_step: -1,
-            query_eval_data: {}
+            query_eval_data: {},
+            query_eval_checkbox_checked: {}
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
@@ -45,6 +46,7 @@ export default class AppDriver extends React.Component {
         this.handleSessionSelection = this.handleSessionSelection.bind(this);
         this.handleGetQueryPrompt = this.handleGetQueryPrompt.bind(this);
         this.toggleShowSessionCreation = this.toggleShowSessionCreation.bind(this);
+        this.toggleCheckedState = this.toggleCheckedState.bind(this);
     }
 
     async componentDidMount() {
@@ -122,6 +124,14 @@ export default class AppDriver extends React.Component {
         if(promptJson['language'] === 'speakql') {
             example = queryJson['speakql_example_1']
         }
+
+        var checkboxStatuses = this.state.query_eval_checkbox_checked || {};
+        console.log(Object.keys(checkboxStatuses));
+        for(const status of Object.keys(checkboxStatuses) || []) {
+            checkboxStatuses[status] = false;
+        }
+        console.log("checkboxStatuses:", checkboxStatuses);
+        this.setState({query_eval_checkbox_checked : checkboxStatuses});
 
         this.setState({
             query_eval_data : {
@@ -334,6 +344,15 @@ export default class AppDriver extends React.Component {
             }
     }
 
+    toggleCheckedState(obj) {
+        console.log("Checkbox param passed:", obj.target.name);
+        var checkedState = this.state.query_eval_checkbox_checked;
+        var isChecked = checkedState[obj.target.name] || false;
+        checkedState[obj.target.name] = ! isChecked;
+        this.setState({query_eval_checkbox_checked : checkedState});
+        console.log(this.state.query_eval_checkbox_checked);
+    }
+
     renderQueryPrompt() {
         if(this.state.participant_id > 0 && this.state.selected_session > 0) {
             let tableText = this.state.query_eval_data['tables'] || '';
@@ -350,7 +369,7 @@ export default class AppDriver extends React.Component {
             let selectionList = selectionText.split(',');
             return (
                 <div class="grading-form">
-                    <button onClick={this.handleGetQueryPrompt}>Get Prompt</button>
+                    {/* <button onClick={this.handleGetQueryPrompt}>Get Prompt</button> */}
                     <form class="grading-form">
                         <table class="grading-table">
                             <thead>
@@ -368,7 +387,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Tables:</td>
                                     <td class="content-cell">{tableList.map((
                                         table => <>
-                                        <input type="checkbox" name={"table_" + table}></input>
+                                        <input type="checkbox" name={"table_" + table} checked={this.state.query_eval_checkbox_checked["table_" + table] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"table_" + table}>{table}</label>
                                         </>
                                     ))}</td>
@@ -376,7 +395,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Columns:</td>
                                     <td class="content-cell">{columnList.map((
                                         column => <>
-                                        <input type="checkbox" name={"column_" + column}></input>
+                                        <input type="checkbox" name={"column_" + column} checked={this.state.query_eval_checkbox_checked["column_" + column] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"column_" + column}>{column}</label>
                                         </>
                                     ))}</td>
@@ -386,7 +405,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Functions:</td>
                                     <td class="content-cell">{functionList.map((
                                         funct => <>
-                                        <input type="checkbox" name={"funct_" + funct}></input>
+                                        <input type="checkbox" name={"funct_" + funct} checked={this.state.query_eval_checkbox_checked["funct_" + funct] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"funct_" + funct}>{funct}</label>
                                         </>
                                     ))}</td>
@@ -395,7 +414,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Joins:</td>
                                     <td class="content-cell">{joinList.map((
                                         join => <>
-                                        <input type="checkbox" name={"join_" + join}></input>
+                                        <input type="checkbox" name={"join_" + join} checked={this.state.query_eval_checkbox_checked["join_" + join] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"join_" + join}>{join}</label>
                                         </>
                                     ))}</td>
@@ -404,7 +423,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Modifiers:</td>
                                     <td class="content-cell">{modifierList.map((
                                         modifier => <>
-                                        <input type="checkbox" name={"modifier_" + modifier}></input>
+                                        <input type="checkbox" name={"modifier_" + modifier} checked={this.state.query_eval_checkbox_checked["modifier_" + modifier] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"modifier_" + modifier}>{modifier}</label>
                                         </>
                                     ))}</td>
@@ -413,7 +432,7 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Selections:</td>
                                     <td class="content-cell">{selectionList.map((
                                         selection => <>
-                                        <input type="checkbox" name={"selection_" + selection}></input>
+                                        <input type="checkbox" name={"selection_" + selection} checked={this.state.query_eval_checkbox_checked["selection_" + selection] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"selection_" + selection}>{selection}</label>
                                         </>
                                     ))}</td>
@@ -422,19 +441,19 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Syntax Errors:</td>
                                     <td class="content-cell">
                                         <br></br>
-                                        <input type="checkbox" name="incorrectKeyword"></input>
+                                        <input type="checkbox" name="incorrectKeyword" checked={this.state.query_eval_checkbox_checked["incorrectKeyword"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="incorrectKeyword">Incorrect Keyword</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="incorrectExpressionOrder"></input>
+                                        <input type="checkbox" name="incorrectExpressionOrder" checked={this.state.query_eval_checkbox_checked["incorrectExpressionOrder"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="incorrectExpressionOrder">Incorrect Expression Order</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="incorrectJoinSyntax"></input>
+                                        <input type="checkbox" name="incorrectJoinSyntax" checked={this.state.query_eval_checkbox_checked["incorrectJoinSyntax"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="incorrectJoinSyntax">Incorrect Join Syntax</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="incorrectFunctionSyntax"></input>
+                                        <input type="checkbox" name="incorrectFunctionSyntax" checked={this.state.query_eval_checkbox_checked["incorrectFunctionSyntax"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="incorrectFunctionSyntax">Incorrect Function Syntax</label>
 
                                         <br></br>
@@ -446,19 +465,19 @@ export default class AppDriver extends React.Component {
                                     <td class="label-cell">Symbol Errors</td>
                                     <td class="content-cell">
                                         <br></br>
-                                        <input type="checkbox" name="missingComma"></input>
+                                        <input type="checkbox" name="missingComma" checked={this.state.query_eval_checkbox_checked["missingComma"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="missingComma">Missing Comma</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="missingParen"></input>
+                                        <input type="checkbox" name="missingParen" checked={this.state.query_eval_checkbox_checked["missingParen"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="missingParen">Missing Parenthesis</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="missingQuote"></input>
+                                        <input type="checkbox" name="missingQuote" checked={this.state.query_eval_checkbox_checked["missingQuote"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="missingQuote">Missing Quote</label>
 
                                         <br></br>
-                                        <input type="checkbox" name="missingOperator"></input>
+                                        <input type="checkbox" name="missingOperator" checked={this.state.query_eval_checkbox_checked["missingOperator"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="missingOperator">Missing Operator</label>
 
                                         <br></br>
@@ -510,6 +529,7 @@ export default class AppDriver extends React.Component {
                 {this.renderSessionSelection()}
                 {this.renderSessionCreation(this.state.show_session_creation)}
                 <h3>Current Query Prompt:</h3>
+                <button onClick={this.handleGetQueryPrompt}>Get Prompt</button>
                 {this.renderQueryPrompt()}
                 <h3>Current Submissions for {this.state.username}</h3>
                 {this.renderSubmissionsTable()}
