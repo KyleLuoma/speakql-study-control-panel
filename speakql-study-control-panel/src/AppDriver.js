@@ -171,9 +171,11 @@ export default class AppDriver extends React.Component {
 
     async handleSequenceSelection(e) {
         const selectedSequence = e.target.value;
+        console.log("selectedSequence:", selectedSequence);
         this.setState({
             selected_sequence: selectedSequence
         });
+        console.log("State selected_sequence:", this.state.selected_sequence);
     }
 
     async handleSessionCreation() {
@@ -299,6 +301,7 @@ export default class AppDriver extends React.Component {
                         name="participants" id="participants" 
                         onChange={this.handleParticipantSelection}
                     >
+                        <option>Make a Selection</option>
                         {
                             this.state.usernames.map(
                                 username => <option value = {username}>{username}</option>
@@ -323,6 +326,7 @@ export default class AppDriver extends React.Component {
                             name="sessions" id = "sessions"
                             onChange={this.handleSessionSelection}
                         >
+                            <option value="await_selection">Make a selection</option>
                             {
                                 keys.map(
                                     key => <option value = {
@@ -506,13 +510,17 @@ export default class AppDriver extends React.Component {
                         name="sequences" id="sequences" 
                         onChange={this.handleSequenceSelection}
                     >
+                        <option>Make a Selection</option>
                         {
                             this.state.sequence_ids.map(
                                 sequenceId => <option value = {sequenceId}>{sequenceId}</option>
                                 )
                         }
                     </select>
-                    <div><button onClick={this.handleSessionCreation}>Create Session</button></div>
+                    <div>
+                        <button onClick={this.handleSessionCreation}>Create Session</button>
+                        <button onClick={this.toggleShowSessionCreation}>Cancel</button>                        
+                    </div>
                 </div>
             )
         } else {
