@@ -1,6 +1,6 @@
 
 
-export default async function getAttemptSubmissions(idparticipant, idsession) {
+export default async function skipNext(idsession) {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     var studyApiHost = 'http://127.0.0.1:5000';
@@ -20,22 +20,20 @@ export default async function getAttemptSubmissions(idparticipant, idsession) {
             'Accept-Encoding' : 'gzip, deflate, br'
         },
         body: JSON.stringify({
-            idparticipant: idparticipant,
             idsession: idsession
         })
     };
 
     try {
-        // const response = await fetch(studyApiHost + "/study/get_attempt_submissions_since_last_commit", studyApiPostRequestOptions);
-        const response = await fetch(studyApiHost + "/study/get_all_uncommitted_attempts", studyApiPostRequestOptions);
+        const response = await fetch(studyApiHost + "/study/skip_step", studyApiPostRequestOptions);
         const responseJson = await response.json();
         console.log(responseJson);
         return responseJson;
     } catch (error) {
-        console.log("Error encountered when attempting to get uncommitted participant submissions from study api!");
+        console.log("Error encountered when attempting to skip next step using study api!");
         console.log(error);
         return {
-            msg: 'error when loading submitted attempts'
+            msg: 'error when skpping step'
         };
     }
 }

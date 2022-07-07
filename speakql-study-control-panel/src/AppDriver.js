@@ -11,6 +11,7 @@ import registerParticipantSession from './ApiCalls/RegisterParticipantSession';
 import getNextPrompt from './ApiCalls/GetNextPrompt';
 import getQueryEvalData from './ApiCalls/GetQueryEvalData';
 import getSessionSequenceAndAttempts from './ApiCalls/GetSessionSequenceAndAttempts';
+import skipNext from './ApiCalls/SkipNext';
 
 export default class AppDriver extends React.Component {
 
@@ -20,6 +21,7 @@ export default class AppDriver extends React.Component {
             attempt_submissions: {},
             committed_attempts: {},
             sequence_and_attempts: {},
+            sequence_and_attempts_row_selected: -1,
             submission_selected: -1,
             commit_selected: -1,
             participant_id: -1,
@@ -45,6 +47,7 @@ export default class AppDriver extends React.Component {
         this.handleSaveCorrectAttempt = this.handleSaveCorrectAttempt.bind(this);
         this.handleSaveIncorrectAttempt = this.handleSaveIncorrectAttempt.bind(this);
         this.handleRevertAttempt = this.handleRevertAttempt.bind(this);
+        this.handleSkipNextStep = this.handleSkipNextStep.bind(this);
         this.handleParticipantSelection = this.handleParticipantSelection.bind(this);
         this.handleSequenceSelection = this.handleSequenceSelection.bind(this);
         this.handleSessionCreation = this.handleSessionCreation.bind(this);
@@ -99,6 +102,7 @@ export default class AppDriver extends React.Component {
     }
 
     async handleGetSequenceAndAttempts() {
+        console.log('handleGestSequenceAndAttempts current session id:', this.state.selected_session)
         this.setState({
             sequence_and_attempts: await getSessionSequenceAndAttempts(
                 this.state.selected_session
@@ -121,6 +125,17 @@ export default class AppDriver extends React.Component {
     async handleRevertAttempt() {
         await revertAttempt(this.state.commit_selected);
         await this.handleGetSubmissions();
+        await this.handleGetCommittedAttempts();
+    }
+
+    //Skip step selected in sequence and attempts table by sending a dummy
+    //submission to the study API.
+    //Must check to ensure comitted attempt does not already exist for this
+    //step.
+    //Should also check to ensure we are skipping the next unattempted step only.
+    async handleSkipNextStep() {
+        await skipNext(this.state.selected_session)
+        await this.handleGetSequenceAndAttempts();
         await this.handleGetCommittedAttempts();
     }
 
@@ -261,13 +276,13 @@ export default class AppDriver extends React.Component {
     }
 
 
-    handleComittedAttemptTableRowSelected(idAttemptSubmissions) {
-        this.setState({commit_selected: idAttemptSubmissions});
+    handleComittedAttemptTableRowSelected(selectedRow) {
+        this.setState({commit_selected: selectedRow});
     }
 
 
-    handleSequenceAndAttemptTableRowSelected() {
-        return
+    handleSequenceAndAttemptTableRowSelected(selectedRow) {
+        this.setState({sequence_and_attempts_row_selected: selectedRow});
     }
 
 
@@ -333,16 +348,15 @@ export default class AppDriver extends React.Component {
                 <table>
                     <thead>
                         <tr>
-                            <th>index</th>
-                            {columns.map(head => <th>{head}</th>)}
+                            {['index'].concat(columns).map(head => <th>{head}</th>)}
                         </tr>
                     </thead>
                     <tbody>
                         { keys.map(
                             (key => <tr 
-                                        onClick={() => this.handleComittedAttemptTableRowSelected()}
+                                        onClick={() => this.handleSequenceAndAttemptTableRowSelected(key)}
                                         className={
-                                            this.state.commit_selected === key ? 'table-row-selected' : 'table-row'
+                                            this.state.sequence_and_attempts_row_selected === key ? 'table-row-selected' : 'table-row'
                                         }
                                     >
                                 <td>{key}</td>
@@ -359,7 +373,7 @@ export default class AppDriver extends React.Component {
 
         } else {
             return (
-                <h3>No Participant Committed Attempts Loaded</h3>
+                <h3>No Sequence and Attempts Loaded</h3>
             )
         }
 
@@ -626,6 +640,7 @@ export default class AppDriver extends React.Component {
                 <button onClick={this.handleRevertAttempt}>Revert Selected</button>
                 <h3>Query Sequence and Attempts:</h3>
                 <button onClick={this.handleGetSequenceAndAttempts}>Get Sequence and Attempts</button>
+                <button onClick={this.handleSkipNextStep}>Skip Next</button>
                 {this.renderSequenceAndAttempts()}
             </div>
         )
