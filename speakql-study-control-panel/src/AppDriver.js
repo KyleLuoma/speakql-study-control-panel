@@ -10,6 +10,7 @@ import getParticipantSessions from './ApiCalls/GetParticipantSessions';
 import registerParticipantSession from './ApiCalls/RegisterParticipantSession';
 import getNextPrompt from './ApiCalls/GetNextPrompt';
 import getQueryEvalData from './ApiCalls/GetQueryEvalData';
+import getSessionSequenceAndAttempts from './ApiCalls/GetSessionSequenceAndAttempts';
 
 export default class AppDriver extends React.Component {
 
@@ -18,6 +19,7 @@ export default class AppDriver extends React.Component {
         this.state = ({
             attempt_submissions: {},
             committed_attempts: {},
+            sequence_and_attempts: {},
             submission_selected: -1,
             commit_selected: -1,
             participant_id: -1,
@@ -30,13 +32,16 @@ export default class AppDriver extends React.Component {
             current_query_id: -1,
             current_language: '',
             current_step: -1,
+            current_is_practice: -1,
             query_eval_data: {},
             query_eval_checkbox_checked: {}
         })
 
         this.handleGetSubmissions = this.handleGetSubmissions.bind(this);
         this.handleSubmissionTableRowSelected = this.handleSubmissionTableRowSelected.bind(this);
+        this.handleComittedAttemptTableRowSelected = this.handleComittedAttemptTableRowSelected.bind(this);
         this.handleGetCommittedAttempts = this.handleGetCommittedAttempts.bind(this);
+        this.handleGetSequenceAndAttempts = this.handleGetSequenceAndAttempts.bind(this);
         this.handleSaveCorrectAttempt = this.handleSaveCorrectAttempt.bind(this);
         this.handleSaveIncorrectAttempt = this.handleSaveIncorrectAttempt.bind(this);
         this.handleRevertAttempt = this.handleRevertAttempt.bind(this);
@@ -93,6 +98,14 @@ export default class AppDriver extends React.Component {
         })
     }
 
+    async handleGetSequenceAndAttempts() {
+        this.setState({
+            sequence_and_attempts: await getSessionSequenceAndAttempts(
+                this.state.selected_session
+            )
+        })
+    }
+
     async handleSaveCorrectAttempt() {
         await saveAttempt(this.state.submission_selected, true);
         await this.handleGetSubmissions();
@@ -112,12 +125,16 @@ export default class AppDriver extends React.Component {
     }
 
     async handleGetQueryPrompt() {
-        var promptJson = await getNextPrompt(this.state.participant_id);
+        var promptJson = await getNextPrompt(
+            this.state.participant_id,
+            this.state.selected_session
+            );
         await this.setState({
             current_query_prompt: promptJson['prompt'],
             current_query_id: promptJson['idquery'],
             current_language: promptJson['language'],
-            current_step: promptJson['step']
+            current_step: promptJson['step'],
+            current_is_practice: promptJson['ispractice']
         })
         var queryJson = await getQueryEvalData(promptJson['idquery']);
         var example = queryJson['sql_example'];
@@ -249,6 +266,11 @@ export default class AppDriver extends React.Component {
     }
 
 
+    handleSequenceAndAttemptTableRowSelected() {
+        return
+    }
+
+
     renderCommittedAttemptsTable() {
 
         const keys = Object.keys(this.state.committed_attempts);
@@ -291,6 +313,59 @@ export default class AppDriver extends React.Component {
             )
         }
     }
+
+
+
+    renderSequenceAndAttempts() {
+
+        const keys = Object.keys(this.state.sequence_and_attempts);
+        if (keys[0] !== undefined && keys[0] !== 'msg') {
+            // console.log('keys[0]', keys[0]);
+            // const columns = Object.keys(this.state.sequence_and_attempts[keys[0]]);
+            const columns = [
+                'idsequence', 'step', 'idquery', 'ispractice', 'language', 'speakql_first',
+                'idparticipant', 'attemptnum', 'idattemptsubmission', 'transcript', 'audiofilename', 'time_taken', 
+                'idattemptcommitted', 'iscorrect'
+            ];
+            // console.log('COLUMNS', columns);
+                        
+            return (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>index</th>
+                            {columns.map(head => <th>{head}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        { keys.map(
+                            (key => <tr 
+                                        onClick={() => this.handleComittedAttemptTableRowSelected()}
+                                        className={
+                                            this.state.commit_selected === key ? 'table-row-selected' : 'table-row'
+                                        }
+                                    >
+                                <td>{key}</td>
+                                {
+                                    columns.map(column => <td>{
+                                        this.state.sequence_and_attempts[key][column]
+                                        }</td>)
+                                }
+                            </tr>)
+                        )}
+                    </tbody>                    
+                </table>
+            )
+
+        } else {
+            return (
+                <h3>No Participant Committed Attempts Loaded</h3>
+            )
+        }
+
+    }
+
+
 
     renderUsernameSelection() {
         if(this.state.usernames !== undefined) {
@@ -372,32 +447,33 @@ export default class AppDriver extends React.Component {
             let selectionText = this.state.query_eval_data['selections'] || '';
             let selectionList = selectionText.split(',');
             return (
-                <div class="grading-form">
+                <div className="grading-form">
                     {/* <button onClick={this.handleGetQueryPrompt}>Get Prompt</button> */}
-                    <form class="grading-form">
-                        <table class="grading-table">
+                    <form className="grading-form">
+                        <table className="grading-table">
                             <thead>
                                 <tr>
                                     <th>Category</th>
-                                    <th class="content-cell">Input</th>
+                                    <th className="content-cell">Input</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="label-cell">Prompt:</td><td class="content-cell">{this.state.current_query_prompt}</td></tr>
-                                <tr><td class="label-cell">Language:</td><td class="content-cell">{this.state.current_language}</td></tr>
-                                <tr><td class="label-cell">Step:</td><td class="content-cell">{this.state.current_step}</td></tr>
-                                <tr><td class="label-cell">Example:</td><td class="content-cell">{this.state.query_eval_data['example']}</td></tr>
+                                <tr><td className="label-cell">Prompt:</td><td className="content-cell">{this.state.current_query_prompt}</td></tr>
+                                <tr><td className="label-cell">Language:</td><td className="content-cell">{this.state.current_language}</td></tr>
+                                <tr><td className="label-cell">Step:</td><td className="content-cell">{this.state.current_step}</td></tr>
+                                <tr><td className="label-cell">Practice:</td><td className="content-cell">{this.state.current_is_practice}</td></tr>
+                                <tr><td className="label-cell">Example:</td><td className="content-cell">{this.state.query_eval_data['example']}</td></tr>
                                 <tr>
-                                    <td class="label-cell">Tables:</td>
-                                    <td class="content-cell">{tableList.map((
+                                    <td className="label-cell">Tables:</td>
+                                    <td className="content-cell">{tableList.map((
                                         table => <>
                                         <input type="checkbox" name={"table_" + table} checked={this.state.query_eval_checkbox_checked["table_" + table] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"table_" + table}>{table}</label>
                                         </>
                                     ))}</td>
                                 </tr>
-                                    <td class="label-cell">Columns:</td>
-                                    <td class="content-cell">{columnList.map((
+                                    <td className="label-cell">Columns:</td>
+                                    <td className="content-cell">{columnList.map((
                                         column => <>
                                         <input type="checkbox" name={"column_" + column} checked={this.state.query_eval_checkbox_checked["column_" + column] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"column_" + column}>{column}</label>
@@ -406,8 +482,8 @@ export default class AppDriver extends React.Component {
                                     <tr>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Functions:</td>
-                                    <td class="content-cell">{functionList.map((
+                                    <td className="label-cell">Functions:</td>
+                                    <td className="content-cell">{functionList.map((
                                         funct => <>
                                         <input type="checkbox" name={"funct_" + funct} checked={this.state.query_eval_checkbox_checked["funct_" + funct] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"funct_" + funct}>{funct}</label>
@@ -415,8 +491,8 @@ export default class AppDriver extends React.Component {
                                     ))}</td>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Joins:</td>
-                                    <td class="content-cell">{joinList.map((
+                                    <td className="label-cell">Joins:</td>
+                                    <td className="content-cell">{joinList.map((
                                         join => <>
                                         <input type="checkbox" name={"join_" + join} checked={this.state.query_eval_checkbox_checked["join_" + join] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"join_" + join}>{join}</label>
@@ -424,8 +500,8 @@ export default class AppDriver extends React.Component {
                                     ))}</td>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Modifiers:</td>
-                                    <td class="content-cell">{modifierList.map((
+                                    <td className="label-cell">Modifiers:</td>
+                                    <td className="content-cell">{modifierList.map((
                                         modifier => <>
                                         <input type="checkbox" name={"modifier_" + modifier} checked={this.state.query_eval_checkbox_checked["modifier_" + modifier] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"modifier_" + modifier}>{modifier}</label>
@@ -433,8 +509,8 @@ export default class AppDriver extends React.Component {
                                     ))}</td>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Selections:</td>
-                                    <td class="content-cell">{selectionList.map((
+                                    <td className="label-cell">Selections:</td>
+                                    <td className="content-cell">{selectionList.map((
                                         selection => <>
                                         <input type="checkbox" name={"selection_" + selection} checked={this.state.query_eval_checkbox_checked["selection_" + selection] || false} onChange={this.toggleCheckedState}></input>
                                         <label for={"selection_" + selection}>{selection}</label>
@@ -442,8 +518,8 @@ export default class AppDriver extends React.Component {
                                     ))}</td>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Syntax Errors:</td>
-                                    <td class="content-cell">
+                                    <td className="label-cell">Syntax Errors:</td>
+                                    <td className="content-cell">
                                         <br></br>
                                         <input type="checkbox" name="incorrectKeyword" checked={this.state.query_eval_checkbox_checked["incorrectKeyword"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="incorrectKeyword">Incorrect Keyword</label>
@@ -466,8 +542,8 @@ export default class AppDriver extends React.Component {
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td class="label-cell">Symbol Errors</td>
-                                    <td class="content-cell">
+                                    <td className="label-cell">Symbol Errors</td>
+                                    <td className="content-cell">
                                         <br></br>
                                         <input type="checkbox" name="missingComma" checked={this.state.query_eval_checkbox_checked["missingComma"] || false} onChange={this.toggleCheckedState}></input>
                                         <label for="missingComma">Missing Comma</label>
@@ -548,6 +624,9 @@ export default class AppDriver extends React.Component {
                 {this.renderCommittedAttemptsTable()}
                 <button onClick={this.handleGetCommittedAttempts}>Get Committed Attempts</button>
                 <button onClick={this.handleRevertAttempt}>Revert Selected</button>
+                <h3>Query Sequence and Attempts:</h3>
+                <button onClick={this.handleGetSequenceAndAttempts}>Get Sequence and Attempts</button>
+                {this.renderSequenceAndAttempts()}
             </div>
         )
     }

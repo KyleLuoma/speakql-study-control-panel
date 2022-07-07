@@ -18,11 +18,12 @@ var studyApiPostRequestOptions = {
     body: JSON.stringify({})
 };
 
-export default async function getNextPrompt(idparticipant) {
+export default async function getNextPrompt(idparticipant, idsession) {
     // console.log("getNextPrompt postRequestOptions:", studyApiPostRequestOptions);
 
     studyApiPostRequestOptions['body'] = JSON.stringify({
-        idparticipant: idparticipant
+        idparticipant: idparticipant,
+        idsession: idsession
     })
     if(idparticipant > 0) {
         try {
